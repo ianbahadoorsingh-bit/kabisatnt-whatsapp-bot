@@ -1,0 +1,22 @@
+{
+  "name": "kabisatnt-whatsapp-bot",
+  "version": "1.0.0",
+  "description": "KABISATNT WhatsApp AI Chatbot - Beverage & Tobacco Distribution",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": ["whatsapp", "bot", "kabisatnt"],
+  "author": "KABISATNT",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
+    "axios": "^1.19.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
