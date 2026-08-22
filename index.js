@@ -408,6 +408,44 @@ app.get("/api/messages", dashboardAuth, (req, res) => {
   res.json({ chats, serverTime: Date.now() });
 });
 
+// --- Dashboard API: send a manual reply to a customer ---
+app.post("/api/send", dashboardAuth, async (req, res) => {
+  const { phone, text } = req.body || {};
+  if (!phone || !text || !String(text).trim()) {
+    return res.status(400).json({ success: false, error: "Missing phone or text" });
+  }
+  try {
+    await axios.post(
+      `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: phone,
+        type: "text",
+        text: { preview_url: false, body: String(text) },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    const name = inbox.get(phone)?.name || phone;
+    logMessage(phone, name, "out", String(text));
+    res.json({ success: true });
+  } catch (error) {
+    const errData = error.response?.data?.error;
+    const msg =
+      errData?.error_data?.details ||
+      errData?.message ||
+      error.message ||
+      "Send failed";
+    console.error("Manual send failed:", msg);
+    res.status(500).json({ success: false, error: msg });
+  }
+});
+
 // --- Dashboard UI ---
 app.get("/dashboard", dashboardAuth, (req, res) => {
   res.set("Content-Type", "text/html");
@@ -452,6 +490,13 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   .col { display:flex; flex-direction:column; }
   .empty { margin:auto; color:var(--muted); text-align:center; padding:40px; }
   .badge { background:#25d366; color:#fff; border-radius:10px; font-size:11px; padding:1px 7px; margin-left:6px; }
+  .composer { display:none; flex-direction:column; gap:4px; padding:10px 12px; background:#f0f2f5; border-top:1px solid var(--line); }
+  .composer .row2 { display:flex; gap:8px; }
+  .composer input { flex:1; padding:10px 14px; border:1px solid var(--line); border-radius:22px; font-size:14px; outline:none; }
+  .composer input:focus { border-color:var(--green2); }
+  .composer button { padding:10px 18px; background:var(--green2); color:#fff; border:none; border-radius:22px; font-weight:600; cursor:pointer; }
+  .composer button:disabled { opacity:.5; cursor:default; }
+  .sendErr { color:#c0392b; font-size:12px; min-height:14px; }
 </style>
 </head>
 <body>
@@ -465,6 +510,13 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   <div class="thread">
     <div class="thread-head" id="threadHead">Select a conversation</div>
     <div class="messages col" id="messages"><div class="empty">Incoming customer messages appear here in real time.</div></div>
+    <div class="composer" id="composer">
+      <div class="sendErr" id="sendErr"></div>
+      <div class="row2">
+        <input id="replyInput" type="text" placeholder="Type a reply…" autocomplete="off" />
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
   </div>
 </div>
 <script>
@@ -487,8 +539,10 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
   function renderThread(){
     const head = document.getElementById('threadHead');
     const box = document.getElementById('messages');
+    const composer = document.getElementById('composer');
     const c = chats.find(x=>x.phone===active);
-    if(!c){ head.textContent='Select a conversation'; box.innerHTML='<div class="empty">Incoming customer messages appear here in real time.</div>'; return; }
+    if(!c){ head.textContent='Select a conversation'; box.innerHTML='<div class="empty">Incoming customer messages appear here in real time.</div>'; composer.style.display='none'; return; }
+    composer.style.display='flex';
     head.innerHTML = esc(c.name) + '<small>+'+esc(c.phone)+'</small>';
     const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
     box.innerHTML = c.messages.map(m =>
@@ -509,6 +563,29 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
       renderList(); renderThread();
     } catch(e){ document.getElementById('status').textContent='Offline – retrying…'; }
   }
+  async function sendReply(){
+    const input = document.getElementById('replyInput');
+    const btn = document.getElementById('sendBtn');
+    const err = document.getElementById('sendErr');
+    const text = input.value.trim();
+    err.textContent = '';
+    if(!text || !active) return;
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/send', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({phone: active, text})});
+      const d = await r.json().catch(()=>({}));
+      if(!r.ok || !d.success){
+        err.textContent = 'Could not send: ' + (d.error || 'error') + (r.status===500?' (customer must message first within 24h)':'');
+      } else {
+        input.value = '';
+        await poll();
+      }
+    } catch(e){ err.textContent = 'Network error – please try again.'; }
+    btn.disabled = false;
+    input.focus();
+  }
+  document.getElementById('sendBtn').onclick = sendReply;
+  document.getElementById('replyInput').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); sendReply(); } });
   poll();
   setInterval(poll, 4000);
 </script>
