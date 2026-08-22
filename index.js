@@ -19,9 +19,32 @@ const PORT = process.env.PORT || 3000;
 // --- Claude AI Client ---
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
+// --- Dashboard config ---
+const DASHBOARD_USER = process.env.DASHBOARD_USER || "admin";
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "kabisatnt2024";
+
 // --- Conversation History (in-memory, per phone number) ---
 const conversations = new Map();
 const MAX_HISTORY = 20; // Keep last 20 messages per conversation
+
+// --- Message Log for the Dashboard (in-memory, resets on redeploy) ---
+// Structure: Map<phone, { phone, name, messages: [{ dir, text, ts }], lastTs }>
+const inbox = new Map();
+const MAX_MESSAGES_PER_CHAT = 200;
+
+function logMessage(phone, name, dir, text) {
+  if (!inbox.has(phone)) {
+    inbox.set(phone, { phone, name: name || phone, messages: [], lastTs: 0 });
+  }
+  const chat = inbox.get(phone);
+  if (name && name !== "Customer") chat.name = name;
+  const ts = Date.now();
+  chat.messages.push({ dir, text, ts });
+  chat.lastTs = ts;
+  if (chat.messages.length > MAX_MESSAGES_PER_CHAT) {
+    chat.messages.splice(0, chat.messages.length - MAX_MESSAGES_PER_CHAT);
+  }
+}
 
 function getConversationHistory(phone) {
   if (!conversations.has(phone)) {
@@ -285,6 +308,9 @@ app.post("/webhook", async (req, res) => {
 
       console.log(`💬 ${contactName}: ${userMessage}`);
 
+      // Log inbound message for the dashboard
+      logMessage(from, contactName, "in", userMessage);
+
       // Check for quick commands first
       let response = handleQuickCommand(userMessage);
 
@@ -295,6 +321,9 @@ app.post("/webhook", async (req, res) => {
         response = await getAIResponse(from, contextMessage);
       }
 
+      // Log outbound reply for the dashboard
+      logMessage(from, contactName, "out", response);
+
       // Send the response
       await sendWhatsAppMessage(from, response);
       console.log(`✅ Replied to ${contactName}`);
@@ -303,6 +332,188 @@ app.post("/webhook", async (req, res) => {
     console.error("Error processing webhook:", error);
   }
 });
+
+// --- Re-register Phone Number ---
+app.post("/register", async (req, res) => {
+  try {
+    const pin = req.body.pin || "227555";
+    console.log("📱 Attempting to re-register phone number...");
+    const response = await axios.post(
+      `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/register`,
+      {
+        messaging_product: "whatsapp",
+        pin: pin,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("✅ Phone number registered successfully:", response.data);
+    res.json({ success: true, data: response.data });
+  } catch (error) {
+    console.error("❌ Registration failed:", error.response?.data || error.message);
+    res.status(500).json({ success: false, error: error.response?.data || error.message });
+  }
+});
+
+// --- Deregister Phone Number ---
+app.post("/deregister", async (req, res) => {
+  try {
+    console.log("📱 Attempting to deregister phone number...");
+    const response = await axios.post(
+      `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/deregister`,
+      {
+        messaging_product: "whatsapp",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("✅ Phone number deregistered successfully:", response.data);
+    res.json({ success: true, data: response.data });
+  } catch (error) {
+    console.error("❌ Deregistration failed:", error.response?.data || error.message);
+    res.status(500).json({ success: false, error: error.response?.data || error.message });
+  }
+});
+
+// --- Dashboard Auth (HTTP Basic) ---
+function dashboardAuth(req, res, next) {
+  const header = req.headers.authorization || "";
+  const token = header.split(" ")[1] || "";
+  const [user, pass] = Buffer.from(token, "base64").toString().split(":");
+  if (user === DASHBOARD_USER && pass === DASHBOARD_PASSWORD) {
+    return next();
+  }
+  res.set("WWW-Authenticate", 'Basic realm="KABISATNT Dashboard"');
+  return res.status(401).send("Authentication required.");
+}
+
+// --- Dashboard API: all conversations, newest chat first ---
+app.get("/api/messages", dashboardAuth, (req, res) => {
+  const chats = Array.from(inbox.values())
+    .sort((a, b) => b.lastTs - a.lastTs)
+    .map((c) => ({
+      phone: c.phone,
+      name: c.name,
+      lastTs: c.lastTs,
+      messages: c.messages,
+    }));
+  res.json({ chats, serverTime: Date.now() });
+});
+
+// --- Dashboard UI ---
+app.get("/dashboard", dashboardAuth, (req, res) => {
+  res.set("Content-Type", "text/html");
+  res.send(DASHBOARD_HTML);
+});
+
+const DASHBOARD_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KABISATNT Inbox</title>
+<style>
+  :root {
+    --green:#075e54; --green2:#128c7e; --bg:#eae6df; --panel:#fff;
+    --in:#fff; --out:#d9fdd3; --muted:#667781; --line:#e9edef;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:#111b21; height:100vh; overflow:hidden; }
+  header { background:var(--green); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:10px; }
+  header h1 { font-size:16px; margin:0; font-weight:600; }
+  header .dot { width:9px; height:9px; border-radius:50%; background:#25d366; box-shadow:0 0 0 3px rgba(37,211,102,.3); }
+  header .sub { font-size:12px; opacity:.85; margin-left:auto; }
+  .wrap { display:flex; height:calc(100vh - 45px); }
+  .list { width:340px; background:var(--panel); border-right:1px solid var(--line); overflow-y:auto; flex-shrink:0; }
+  .chat-item { padding:12px 16px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .chat-item:hover { background:#f5f6f6; }
+  .chat-item.active { background:#f0f2f5; }
+  .chat-item .row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .chat-item .name { font-weight:600; font-size:15px; }
+  .chat-item .time { font-size:11px; color:var(--muted); flex-shrink:0; }
+  .chat-item .preview { font-size:13px; color:var(--muted); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .chat-item .phone { font-size:11px; color:#8696a0; }
+  .thread { flex:1; display:flex; flex-direction:column; background:#efeae2; }
+  .thread-head { background:#f0f2f5; padding:12px 16px; border-bottom:1px solid var(--line); font-weight:600; }
+  .thread-head small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
+  .messages { flex:1; overflow-y:auto; padding:18px 8%; }
+  .msg { max-width:70%; padding:7px 11px; border-radius:8px; margin-bottom:8px; font-size:14px; line-height:1.35; box-shadow:0 1px .5px rgba(0,0,0,.08); white-space:pre-wrap; word-wrap:break-word; }
+  .msg.in { background:var(--in); align-self:flex-start; border-top-left-radius:0; }
+  .msg.out { background:var(--out); margin-left:auto; border-top-right-radius:0; }
+  .msg .t { display:block; font-size:10px; color:var(--muted); margin-top:3px; text-align:right; }
+  .col { display:flex; flex-direction:column; }
+  .empty { margin:auto; color:var(--muted); text-align:center; padding:40px; }
+  .badge { background:#25d366; color:#fff; border-radius:10px; font-size:11px; padding:1px 7px; margin-left:6px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="dot"></span>
+  <h1>KABISATNT Inbox</h1>
+  <span class="sub" id="status">Connecting…</span>
+</header>
+<div class="wrap">
+  <div class="list" id="list"></div>
+  <div class="thread">
+    <div class="thread-head" id="threadHead">Select a conversation</div>
+    <div class="messages col" id="messages"><div class="empty">Incoming customer messages appear here in real time.</div></div>
+  </div>
+</div>
+<script>
+  let chats = [];
+  let active = null;
+  function fmt(ts){ if(!ts) return ""; const d=new Date(ts); return d.toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}); }
+  function fmtTime(ts){ const d=new Date(ts); return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+  function renderList(){
+    const el = document.getElementById('list');
+    if(!chats.length){ el.innerHTML = '<div class="empty">No conversations yet.</div>'; return; }
+    el.innerHTML = chats.map(c => {
+      const last = c.messages[c.messages.length-1];
+      const prev = last ? (last.dir==='out'?'You: ':'') + last.text : '';
+      return '<div class="chat-item '+(c.phone===active?'active':'')+'" onclick="select(\\''+c.phone+'\\')">'
+        + '<div class="row"><span class="name">'+esc(c.name)+'</span><span class="time">'+fmt(c.lastTs)+'</span></div>'
+        + '<div class="phone">+'+esc(c.phone)+'</div>'
+        + '<div class="preview">'+esc(prev)+'</div></div>';
+    }).join('');
+  }
+  function renderThread(){
+    const head = document.getElementById('threadHead');
+    const box = document.getElementById('messages');
+    const c = chats.find(x=>x.phone===active);
+    if(!c){ head.textContent='Select a conversation'; box.innerHTML='<div class="empty">Incoming customer messages appear here in real time.</div>'; return; }
+    head.innerHTML = esc(c.name) + '<small>+'+esc(c.phone)+'</small>';
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    box.innerHTML = c.messages.map(m =>
+      '<div class="msg '+(m.dir==='in'?'in':'out')+'">'+esc(m.text)+'<span class="t">'+fmtTime(m.ts)+'</span></div>'
+    ).join('');
+    if(atBottom) box.scrollTop = box.scrollHeight;
+  }
+  function select(phone){ active=phone; renderList(); renderThread(); }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  async function poll(){
+    try {
+      const r = await fetch('/api/messages', {cache:'no-store'});
+      if(!r.ok){ document.getElementById('status').textContent='Auth error'; return; }
+      const data = await r.json();
+      chats = data.chats;
+      if(!active && chats.length) active = chats[0].phone;
+      document.getElementById('status').textContent = 'Live · '+chats.length+' chats · '+fmtTime(data.serverTime);
+      renderList(); renderThread();
+    } catch(e){ document.getElementById('status').textContent='Offline – retrying…'; }
+  }
+  poll();
+  setInterval(poll, 4000);
+</script>
+</body>
+</html>`;
 
 // --- Health Check ---
 app.get("/", (req, res) => {
