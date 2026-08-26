@@ -1,87 +1,171 @@
-// KABISATNT Product Catalog
-// Update this file with your actual products and prices
+// KABISATNT Product Catalog — Price List 2026
+// All prices in Trinidad & Tobago Dollars (TTD).
 
 const products = {
-  beers: [
-    { name: "Carib Lager", size: "275ml", price: 10.00, case_price: 120.00, case_qty: 24 },
-    { name: "Carib Lager", size: "330ml", price: 12.00, case_price: 144.00, case_qty: 24 },
-    { name: "Stag Lager", size: "275ml", price: 10.00, case_price: 120.00, case_qty: 24 },
-    { name: "Stag Lager", size: "330ml", price: 12.00, case_price: 144.00, case_qty: 24 },
-    { name: "Heineken", size: "330ml", price: 15.00, case_price: 180.00, case_qty: 24 },
-    { name: "Corona Extra", size: "330ml", price: 18.00, case_price: 216.00, case_qty: 24 },
-    { name: "Guinness Stout", size: "275ml", price: 12.00, case_price: 144.00, case_qty: 24 },
-  ],
-  drinks: [
-    { name: "Smirnoff Ice", size: "275ml", price: 15.00, case_price: 180.00, case_qty: 24 },
-    { name: "Johnnie Walker Red Label", size: "750ml", price: 250.00 },
-    { name: "Johnnie Walker Black Label", size: "750ml", price: 450.00 },
-    { name: "Hennessy VS", size: "750ml", price: 500.00 },
-    { name: "Absolut Vodka", size: "750ml", price: 200.00 },
-    { name: "Bacardi White Rum", size: "750ml", price: 150.00 },
-    { name: "Jack Daniel's", size: "750ml", price: 350.00 },
-  ],
-  cigars: [
-    { name: "Cuban Cigar Selection", price: 50.00, description: "Premium hand-rolled" },
-    { name: "Davidoff Classic", price: 75.00, description: "Smooth and refined" },
-    { name: "Montecristo No. 4", price: 45.00, description: "Medium-bodied classic" },
-  ],
-  cigarettes: [
-    { name: "Du Maurier", price: 45.00, pack: "20s" },
-    { name: "Marlboro Red", price: 50.00, pack: "20s" },
-    { name: "Marlboro Gold", price: 50.00, pack: "20s" },
-    { name: "Broadway", price: 30.00, pack: "20s" },
-  ],
   vapes: [
-    { name: "Disposable Vape 5000 Puffs", price: 80.00, description: "Various flavors available" },
-    { name: "Disposable Vape 8000 Puffs", price: 120.00, description: "Various flavors available" },
-    { name: "Vape Pod Kit", price: 200.00, description: "Rechargeable starter kit" },
-    { name: "Vape Juice 30ml", price: 60.00, description: "Multiple nicotine strengths" },
-  ]
+    {
+      name: "Revel Vape Disposable (1,000 Puffs)",
+      size: "1,000 puffs",
+      price: 45.0,
+      srp: 55.0,
+      description: "5% NicSalt, 500mAh — Grape Ice, Blue Razz Ice. SRP $55",
+    },
+    {
+      name: "Revel Vape Disposable (15,000 Puffs)",
+      size: "15,000 puffs",
+      price: 85.0,
+      srp: "90.00–100.00",
+      description: "5% Nicotine, 15k puffs (7.5k pulse mode). SRP $90–100",
+    },
+  ],
+
+  beers: [
+    {
+      name: "Bia Saigon Special Beer",
+      size: "case of 24 x 330ml",
+      price: 340.0,
+      case_qty: 24,
+      unit_size: "330ml",
+      description: "100% Spring Barley. Sold by the case (24 bottles/cans)",
+    },
+  ],
+
+  // Non-alcoholic energy & soft drinks (Kabisa line)
+  drinks: [
+    {
+      name: "Kabisa Guarana & Magnesium Energy Drink",
+      size: "case of 24 x 250ml",
+      price: 130.0,
+      case_qty: 24,
+      description: "Clean energy formula. Sold by the case",
+    },
+    {
+      name: "Kabisa Pure Energy Drink (Zero Sugar)",
+      size: "case of 24 x 250ml",
+      price: 130.0,
+      case_qty: 24,
+      description: "Zero sugar, cooling effect. Sold by the case",
+    },
+    {
+      name: "Kabisa Spicy Ginger & Lemon Soft Drink",
+      size: "case of 24 x 250ml",
+      price: 130.0,
+      case_qty: 24,
+      description: "Sparkling soft drink. Sold by the case",
+    },
+    {
+      name: "Kabisa Real Energy Drink (100% Energy)",
+      size: "case of 24 x 250ml",
+      price: 110.0,
+      case_qty: 24,
+      description: "Original energy blend. Sold by the case",
+    },
+  ],
+
+  cigarettes: [
+    {
+      name: "Revel Cigarettes (Gold)",
+      pack: "carton",
+      price: 160.0,
+      description: "20 filtered cigarettes per pack, Virginia Blend. Priced per carton",
+    },
+    {
+      name: "Revel Cigarettes (Green / Menthol)",
+      pack: "carton",
+      price: 170.0,
+      description: "20 filtered menthol cigarettes per pack. Priced per carton",
+    },
+  ],
+
+  cigars: [
+    {
+      name: "Good Times Extra Slow Burn Blunt",
+      size: "per cigar",
+      price: 12.0,
+      box_price: 180.0,
+      box_qty: 15,
+      description: "Sweet & Grape flavors. Box of 15: $180",
+    },
+    {
+      name: "Good Times Sweet Cigarillos",
+      size: "per cigarillo",
+      price: 7.0,
+      box_price: 420.0,
+      box_qty: 60,
+      description: "Sweet & Grape flavors. Box of 60: $420",
+    },
+    {
+      name: "La Morena Natural Cigars",
+      size: "per cigar",
+      price: 15.0,
+      description: "Premium packaged natural cigars",
+    },
+    {
+      name: "Hand Rolled Cigars (Assorted)",
+      size: "from, each",
+      price: 60.0,
+      description: "Big Dog, Marcos Cubanos, Tesoro Cubano, and more. From $60 each",
+    },
+  ],
+
+  accessories: [
+    {
+      name: "RAW Brown Rolling Papers (Classic / Slim)",
+      size: "per box",
+      price: 125.0,
+      description: "Natural unrefined rolling paper",
+    },
+  ],
 };
 
+function priceLine(p) {
+  let s = `  • ${p.name}`;
+  if (p.size) s += ` (${p.size})`;
+  if (p.pack) s += ` (${p.pack})`;
+  s += ` — $${p.price.toFixed(2)}`;
+  if (p.box_price) s += ` | Box of ${p.box_qty}: $${p.box_price.toFixed(2)}`;
+  s += "\n";
+  return s;
+}
+
 function getProductCatalog() {
-  let catalog = "📦 *KABISATNT PRODUCT CATALOG*\n\n";
+  let c = "📦 *KABISATNT PRICE LIST 2026*\n_All prices in TTD_\n\n";
 
-  catalog += "🍺 *BEERS*\n";
-  products.beers.forEach(p => {
-    catalog += `  • ${p.name} (${p.size}) - $${p.price.toFixed(2)}`;
-    if (p.case_price) catalog += ` | Case of ${p.case_qty}: $${p.case_price.toFixed(2)}`;
-    catalog += "\n";
-  });
+  c += "💨 *VAPES*\n";
+  products.vapes.forEach((p) => (c += priceLine(p)));
 
-  catalog += "\n🥃 *SPIRITS & DRINKS*\n";
-  products.drinks.forEach(p => {
-    catalog += `  • ${p.name} (${p.size}) - $${p.price.toFixed(2)}\n`;
-  });
+  c += "\n🍺 *BEER*\n";
+  products.beers.forEach((p) => (c += priceLine(p)));
 
-  catalog += "\n🚬 *CIGARS*\n";
-  products.cigars.forEach(p => {
-    catalog += `  • ${p.name} - $${p.price.toFixed(2)} (${p.description})\n`;
-  });
+  c += "\n⚡ *ENERGY & SOFT DRINKS*\n";
+  products.drinks.forEach((p) => (c += priceLine(p)));
 
-  catalog += "\n🚬 *CIGARETTES*\n";
-  products.cigarettes.forEach(p => {
-    catalog += `  • ${p.name} (${p.pack}) - $${p.price.toFixed(2)}\n`;
-  });
+  c += "\n🚬 *CIGARETTES*\n";
+  products.cigarettes.forEach((p) => (c += priceLine(p)));
 
-  catalog += "\n💨 *VAPES*\n";
-  products.vapes.forEach(p => {
-    catalog += `  • ${p.name} - $${p.price.toFixed(2)} (${p.description})\n`;
-  });
+  c += "\n🚬 *CIGARS & CIGARILLOS*\n";
+  products.cigars.forEach((p) => (c += priceLine(p)));
 
-  catalog += "\n💰 *All prices in TTD*";
-  catalog += "\n📞 To place an order, just tell me what you'd like!";
+  c += "\n📄 *ROLLING PAPERS*\n";
+  products.accessories.forEach((p) => (c += priceLine(p)));
 
-  return catalog;
+  c += "\n💬 Tell me what you'd like to order, or ask about any product!";
+  return c;
 }
 
 function getProductsByCategory(category) {
-  const cat = category.toLowerCase();
-  if (cat.includes("beer")) return { category: "Beers", items: products.beers };
-  if (cat.includes("spirit") || cat.includes("drink") || cat.includes("liquor") || cat.includes("whisky") || cat.includes("whiskey") || cat.includes("vodka") || cat.includes("rum") || cat.includes("hennessy") || cat.includes("brandy")) return { category: "Spirits & Drinks", items: products.drinks };
-  if (cat.includes("cigar") && !cat.includes("cigarette")) return { category: "Cigars", items: products.cigars };
-  if (cat.includes("cigarette") || cat.includes("smoke")) return { category: "Cigarettes", items: products.cigarettes };
-  if (cat.includes("vape") || cat.includes("e-cig") || cat.includes("pod")) return { category: "Vapes", items: products.vapes };
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("beer")) return { category: "Beer", items: products.beers };
+  if (cat.includes("spirit") || cat.includes("drink") || cat.includes("energy") || cat.includes("kabisa") || cat.includes("soft"))
+    return { category: "Energy & Soft Drinks", items: products.drinks };
+  if (cat.includes("cigar") && !cat.includes("cigarette"))
+    return { category: "Cigars & Cigarillos", items: products.cigars };
+  if (cat.includes("cigarette") || cat.includes("smoke"))
+    return { category: "Cigarettes", items: products.cigarettes };
+  if (cat.includes("vape") || cat.includes("e-cig") || cat.includes("pod"))
+    return { category: "Vapes", items: products.vapes };
+  if (cat.includes("paper") || cat.includes("accessor") || cat.includes("raw"))
+    return { category: "Rolling Papers", items: products.accessories };
   return null;
 }
 
