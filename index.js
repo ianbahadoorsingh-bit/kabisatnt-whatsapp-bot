@@ -15,6 +15,10 @@ const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "kabisatnt_verify_2024";
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const PORT = process.env.PORT || 3000;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY; // enables AI voice answering of WhatsApp calls
+const VOICE_MODEL = process.env.VOICE_MODEL || "gpt-realtime";
+const VOICE_NAME = process.env.VOICE_NAME || "marin";
+const { handleCallEvent } = require("./calls");
 
 // --- Claude AI Client ---
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
@@ -261,6 +265,23 @@ app.post("/webhook", async (req, res) => {
   try {
     const body = req.body;
 
+    // --- WhatsApp voice call events ---
+    const callValue = body.entry?.[0]?.changes?.[0]?.value;
+    if (body.object === "whatsapp_business_account" && callValue?.calls) {
+      for (const call of callValue.calls) {
+        logMessage(call.from || "unknown", callValue.contacts?.[0]?.profile?.name, "in", `[Voice call: ${call.event}]`);
+        await handleCallEvent(call, {
+          phoneNumberId: PHONE_NUMBER_ID,
+          whatsappToken: WHATSAPP_TOKEN,
+          openaiKey: OPENAI_API_KEY,
+          model: VOICE_MODEL,
+          voice: VOICE_NAME,
+          instructions: SYSTEM_PROMPT + VOICE_ADDENDUM,
+        });
+      }
+      return;
+    }
+
     if (
       body.object === "whatsapp_business_account" &&
       body.entry &&
@@ -334,9 +355,9 @@ app.post("/webhook", async (req, res) => {
 });
 
 // --- Re-register Phone Number ---
-app.post("/register", async (req, res) => {
+app.post("/register", dashboardAuth, async (req, res) => {
   try {
-    const pin = req.body.pin || "227555";
+    const pin = req.body.pin || process.env.WHATSAPP_PIN;
     console.log("📱 Attempting to re-register phone number...");
     const response = await axios.post(
       `https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/register`,
@@ -360,7 +381,7 @@ app.post("/register", async (req, res) => {
 });
 
 // --- Deregister Phone Number ---
-app.post("/deregister", async (req, res) => {
+app.post("/deregister", dashboardAuth, async (req, res) => {
   try {
     console.log("📱 Attempting to deregister phone number...");
     const response = await axios.post(
@@ -591,6 +612,36 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 </script>
 </body>
 </html>`;
+
+// --- Extra guidance when the assistant is speaking on a phone call ---
+const VOICE_ADDENDUM = `
+
+You are now speaking to the customer on a live WhatsApp voice call, not chatting.
+Speak naturally in short sentences. Do not use emojis, bullet points, markdown or links.
+Greet the caller warmly as KABISATNT. If they want to place an order, confirm the items,
+quantities and delivery location out loud, then tell them a team member will confirm on WhatsApp.`;
+
+// --- Privacy Policy & Data Deletion (required by Meta to publish the app) ---
+const LEGAL_STYLE = `<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:40px auto;padding:0 16px;line-height:1.6;color:#222}h1{font-size:1.6em}h2{font-size:1.15em;margin-top:1.6em}</style>`;
+app.get("/privacy", (req, res) => {
+  res.type("html").send(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KABISATNT Privacy Policy</title>${LEGAL_STYLE}</head><body>
+<h1>KABISATNT Privacy Policy</h1><p>Last updated: 18 October 2026</p>
+<p>KABISATNT ("we", "us") is a Trinidad and Tobago business. This policy explains how we handle information when you contact us on WhatsApp, including messages and voice calls answered by our automated assistant.</p>
+<h2>What we collect</h2><p>Your WhatsApp phone number and profile name, the messages you send us, and the audio of voice calls you place to us while the call is in progress. If you place an order we keep the order details (items, quantities, delivery location).</p>
+<h2>How we use it</h2><p>To answer your questions, take and fulfil orders, and provide customer service. Messages and call audio are processed by AI service providers (Anthropic and OpenAI) only to generate replies. We do not sell your information or use it for advertising.</p>
+<h2>Sharing</h2><p>We share information only with the service providers needed to run the service (Meta/WhatsApp, our hosting provider, and the AI providers above), or where required by law.</p>
+<h2>Retention</h2><p>Chat history is held temporarily to keep conversations in context. Order records are kept as long as needed for business and legal purposes. We do not record or store call audio.</p>
+<h2>Your choices</h2><p>You can ask us to delete your information at any time; see <a href="/data-deletion">Data deletion</a>.</p>
+<h2>Contact</h2><p>Message us on WhatsApp at +1 868-772-0094 or email ian.bahadoorsingh@gmail.com.</p>
+</body></html>`);
+});
+app.get("/data-deletion", (req, res) => {
+  res.type("html").send(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KABISATNT Data Deletion</title>${LEGAL_STYLE}</head><body>
+<h1>Data deletion instructions</h1>
+<p>To have KABISATNT delete the information we hold about you, send the word <b>DELETE MY DATA</b> to us on WhatsApp at +1 868-772-0094, or email ian.bahadoorsingh@gmail.com from any address and include your WhatsApp number.</p>
+<p>We will remove your chat history and personal details within 30 days and confirm once done. Records we are legally required to keep (such as invoices) are retained only for as long as the law requires.</p>
+</body></html>`);
+});
 
 // --- Health Check ---
 app.get("/", (req, res) => {
