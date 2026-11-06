@@ -88,9 +88,10 @@ PROPERTY FACTS (only use these — never invent anything else):
 - Built to British construction standards
 - Move-in ready 2026. Available for sale and for rent.
 - Website with photos: atlanticvillasgy.com
+- Viewing request form: atlanticvillasgy.com/viewing.html
 - Developer: Revel Inc. Email: Revelincgy@gmail.com. Guyana WhatsApp: +592 668 1807. Trinidad WhatsApp: +1 868 772 0094 (this chat).
 
-WHAT YOU DON'T KNOW — never guess these, say a team member will confirm:
+WHAT YOU DON'T KNOW — never guess these. Say a team member will confirm, and share the viewing request form (atlanticvillasgy.com/viewing.html) so the team gets their details:
 - Lease length, deposit and move-in date for renters
 - Payment plans, deposits, financing, mortgages, or how to pay in TT$
 - Which units are still available, legal/title/transfer details, closing costs, taxes
@@ -102,6 +103,7 @@ YOUR JOB:
 3. Collect for the team: their name, buy/invest/rent, budget or timeline, and whether they want a viewing (in person in Guyana or a video call tour). Ask one or two things at a time, not a form.
 4. Once you have their details, confirm a team member will contact them on this WhatsApp number to arrange a viewing and go through prices and payment.
 5. Point them to atlanticvillasgy.com for photos.
+6. Whenever they want a viewing, want more answers than you can give, or are ready to move forward, send them the viewing request form: *atlanticvillasgy.com/viewing.html*. Mention it at least once in every conversation.
 
 STYLE: WhatsApp — short paragraphs, *bold* for key facts, emojis sparingly. Reply in Spanish if they write in Spanish, otherwise English. Never promise returns, approvals, or guaranteed income.
 
@@ -222,23 +224,23 @@ function handleAtlanticQuickCommand(message) {
   const lower = message.toLowerCase().trim().replace(/[!.?]+$/, "");
 
   if (["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "start", "info", "details", "townhouse", "townhouses", "atlantic villas", "guyana"].includes(lower)) {
-    return `👋 Hi! Thanks for contacting *Atlantic Villas* 🇬🇾\n\n🏡 Luxury townhouses in Better Hope, East Coast Demerara — *5 minutes from Ogle Airport*\n\n💵 *Buy in TT$ — TT$3.2 Million*\n📈 USD rentals *up to US$4,000/month*\n📐 1,700 sq ft • 3 bed • 2.5 bath\n🔒 Gated, pickleball court, outdoor kitchen, parking\n\nReply:\n🏠 *buy* – buying info\n🔑 *rent* – renting a unit\n📅 *viewing* – book a viewing\n📸 *photos* – see the homes\n❓ Or just ask me anything!`;
+    return `👋 Hi! Thanks for contacting *Atlantic Villas* 🇬🇾\n\n🏡 Luxury townhouses in Better Hope, East Coast Demerara — *5 minutes from Ogle Airport*\n\n💵 *Buy in TT$ — TT$3.2 Million*\n📈 USD rentals *up to US$4,000/month*\n📐 1,700 sq ft • 3 bed • 2.5 bath\n🔒 Gated, pickleball court, outdoor kitchen, parking\n\nReply:\n🏠 *buy* – buying info\n🔑 *rent* – renting a unit\n📅 *viewing* – book a viewing\n📸 *photos* – see the homes\n📝 Request a viewing: atlanticvillasgy.com/viewing.html\n❓ Or just ask me anything!`;
   }
 
   if (["hola", "buenas", "buenos dias", "buenos días", "buenas tardes", "buenas noches", "español", "espanol", "spanish"].includes(lower)) {
-    return `👋 ¡Hola! Gracias por contactar a *Atlantic Villas* 🇬🇾\n\n🏡 Townhouses de lujo en Better Hope, East Coast Demerara — *a 5 minutos del aeropuerto Ogle*\n\n💵 *Precio: TT$3.2 millones*\n📈 Alquileres en USD *hasta US$4,000/mes*\n📐 1,700 pies² • 3 habitaciones • 2.5 baños\n🔒 Comunidad cerrada, cancha de pickleball, cocina exterior, estacionamiento\n\n¿Le interesa comprar, invertir o alquilar? ¡Pregúnteme lo que quiera!`;
+    return `👋 ¡Hola! Gracias por contactar a *Atlantic Villas* 🇬🇾\n\n🏡 Townhouses de lujo en Better Hope, East Coast Demerara — *a 5 minutos del aeropuerto Ogle*\n\n💵 *Precio: TT$3.2 millones*\n📈 Alquileres en USD *hasta US$4,000/mes*\n📐 1,700 pies² • 3 habitaciones • 2.5 baños\n🔒 Comunidad cerrada, cancha de pickleball, cocina exterior, estacionamiento\n\n📝 Solicite una visita: atlanticvillasgy.com/viewing.html\n\n¿Le interesa comprar, invertir o alquilar? ¡Pregúnteme lo que quiera!`;
   }
 
   if (["photos", "photo", "pictures", "pics", "website", "fotos"].includes(lower)) {
-    return `📸 See photos and full details at *atlanticvillasgy.com*\n\nWould you like to book a viewing — in person in Guyana or a video call tour? 📅`;
+    return `📸 See photos and full details at *atlanticvillasgy.com*\n\nWould you like to book a viewing — in person in Guyana or a video call tour? 📅\n📝 Request one here: *atlanticvillasgy.com/viewing.html*`;
   }
 
   if (["viewing", "view", "visit", "tour", "book", "appointment"].includes(lower)) {
-    return `📅 *Book a viewing of Atlantic Villas*\n\nPlease send:\n1️⃣ Your name\n2️⃣ In person (Guyana) or video call tour?\n3️⃣ Your preferred date and time\n\nA team member will confirm with you right here on WhatsApp. 🙌`;
+    return `📅 *Book a viewing of Atlantic Villas*\n\nPlease send:\n1️⃣ Your name\n2️⃣ In person (Guyana) or video call tour?\n3️⃣ Your preferred date and time\n\nA team member will confirm with you right here on WhatsApp. 🙌\n\n📝 Or fill in our viewing request form: *atlanticvillasgy.com/viewing.html*`;
   }
 
   if (["rent", "rental", "rentals", "for rent", "alquilar", "alquiler"].includes(lower)) {
-    return `🔑 *Rent an Atlantic Villas townhouse*\n\n🛋 Furnished: *US$4,000/month*\n🏠 Unfurnished: *US$3,500/month*\n\n📐 1,700 sq ft • 3 bed • 2.5 bath • gated with parking\n✈ 5 minutes from Ogle Airport\n\nTo arrange a viewing, send your name, furnished or unfurnished, and when you'd like to move in. A team member will confirm lease details with you. 🙌`;
+    return `🔑 *Rent an Atlantic Villas townhouse*\n\n🛋 Furnished: *US$4,000/month*\n🏠 Unfurnished: *US$3,500/month*\n\n📐 1,700 sq ft • 3 bed • 2.5 bath • gated with parking\n✈ 5 minutes from Ogle Airport\n\nTo arrange a viewing, send your name, furnished or unfurnished, and when you'd like to move in. A team member will confirm lease details with you. 🙌\n\n📝 Request a viewing online: *atlanticvillasgy.com/viewing.html*`;
   }
 
   if (lower === "help" || lower === "menu" || lower === "ayuda") {
@@ -666,7 +668,8 @@ const VOICE_ADDENDUM_ATLANTIC = `
 You are now speaking to the customer on a live WhatsApp voice call, not chatting.
 Speak naturally in short sentences. Do not use emojis, bullet points, markdown or links.
 Greet the caller warmly as Atlantic Villas. Answer their questions, then take their name and whether they want
-to buy, invest or rent, and tell them a team member will message them on WhatsApp to arrange a viewing.`;
+to buy, invest or rent, and tell them a team member will message them on WhatsApp to arrange a viewing. You can also tell them
+they can request a viewing on the website, atlantic villas G Y dot com, on the viewing page.`;
 
 const VOICE_ADDENDUM = BOT_MODE === "868market" ? VOICE_ADDENDUM_MARKET : VOICE_ADDENDUM_ATLANTIC;
 
