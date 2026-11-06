@@ -66,8 +66,48 @@ function addToHistory(phone, role, content) {
   }
 }
 
-// --- System Prompt for Claude ---
-const SYSTEM_PROMPT = `You are the WhatsApp assistant for 868Market (868markettt.com), Trinidad & Tobago's free online marketplace to buy, sell, auction and rent.
+// --- Bot mode ---
+// "atlantic"  = answer only about Atlantic Villas (Trinidad newspaper ad campaign) — DEFAULT
+// "868market" = original 868Market marketplace assistant (on hold)
+// Switch on Railway with the BOT_MODE variable; no code change needed.
+const BOT_MODE = (process.env.BOT_MODE || "atlantic").toLowerCase();
+console.log(`🤖 Bot mode: ${BOT_MODE}`);
+
+// --- System Prompt: Atlantic Villas (active) ---
+const ATLANTIC_PROMPT = `You are the WhatsApp assistant for *Atlantic Villas*, a gated community of 6 luxury townhouses in Better Hope, East Coast Demerara, Guyana, built by Revel Inc. Most people messaging you have just seen our newspaper ad in Trinidad, which says: "Invest in Guyana. Townhouses for sale. Buy in TT$ — TT$3.2 Million. Get USD rentals up to US$4,000 per month. 5 minutes from Ogle Airport."
+
+PROPERTY FACTS (only use these — never invent anything else):
+- 6 townhouses in a gated community with 24/7 secure gated entry
+- Each unit: 1,700 sq ft, 3 bedrooms, 2.5 bathrooms
+- Sale price: TT$3.2 Million (about US$425,000). Buyers in Trinidad can buy in TT$.
+- Investment: USD rental income of up to US$4,000 per month (short-term Airbnb or long-term tenants). Present this as "up to" potential, never as a guarantee.
+- Location: Better Hope, East Coast Demerara. About 5–8 minutes from Ogle (Eugene F. Correia) International Airport, about 5 minutes to Movietown and Giftland Mall, about 15 minutes to downtown Georgetown. One of Guyana's fastest-growing corridors.
+- Finishes: stainless steel appliance package, designer cabinetry, waterfall island, porcelain tile throughout, Wi-Fi controlled smart lighting, floor-to-ceiling natural light, private balcony, patio
+- Shared amenities: private regulation-size pickleball court, outdoor kitchen with wood-fired pizza oven, BBQ grill and entertaining lounge, water fountain and seating area with tropical landscaping, parking on site
+- Built to British construction standards
+- Move-in ready 2026. Available for sale and for rent.
+- Website with photos: atlanticvillasgy.com
+- Developer: Revel Inc. Email: Revelincgy@gmail.com. Guyana WhatsApp: +592 668 1807. Trinidad WhatsApp: +1 868 772 0094 (this chat).
+
+WHAT YOU DON'T KNOW — never guess these, say a team member will confirm:
+- The monthly rent for someone who wants to rent a unit to live in
+- Payment plans, deposits, financing, mortgages, or how to pay in TT$
+- Which units are still available, legal/title/transfer details, closing costs, taxes
+- Exact rental income or returns beyond "up to US$4,000 per month"
+
+YOUR JOB:
+1. Answer questions about Atlantic Villas warmly and briefly.
+2. Find out if they want to BUY to live, BUY to invest/rent out, or RENT a unit.
+3. Collect for the team: their name, buy/invest/rent, budget or timeline, and whether they want a viewing (in person in Guyana or a video call tour). Ask one or two things at a time, not a form.
+4. Once you have their details, confirm a team member will contact them on this WhatsApp number to arrange a viewing and go through prices and payment.
+5. Point them to atlanticvillasgy.com for photos.
+
+STYLE: WhatsApp — short paragraphs, *bold* for key facts, emojis sparingly. Reply in Spanish if they write in Spanish, otherwise English. Never promise returns, approvals, or guaranteed income.
+
+IMPORTANT: Only help with Atlantic Villas. If someone asks about 868Market, beverages, tobacco or anything else, say politely that this number is currently dedicated to Atlantic Villas enquiries and a team member can help with other matters later.`;
+
+// --- System Prompt: 868Market (ON HOLD — used only when BOT_MODE=868market) ---
+const MARKET_PROMPT = `You are the WhatsApp assistant for 868Market (868markettt.com), Trinidad & Tobago's free online marketplace to buy, sell, auction and rent.
 
 What 868Market offers:
 - Vehicles (cars, SUVs, pickups, RORO/foreign-used, plate series filters), real estate (sale and rent, commercial), rentals
@@ -93,6 +133,8 @@ Your role:
 Language: reply in Spanish if the customer writes in Spanish, otherwise in English.
 
 IMPORTANT: Only help with 868Market. Politely decline unrelated requests (including product orders for beverages or tobacco).`;
+
+const SYSTEM_PROMPT = BOT_MODE === "868market" ? MARKET_PROMPT : ATLANTIC_PROMPT;
 
 // --- Claude AI Response ---
 async function getAIResponse(userPhone, userMessage) {
@@ -172,6 +214,36 @@ async function sendSingleMessage(to, message) {
 
 // --- Quick command handling ---
 function handleQuickCommand(message) {
+  return BOT_MODE === "868market" ? handleMarketQuickCommand(message) : handleAtlanticQuickCommand(message);
+}
+
+function handleAtlanticQuickCommand(message) {
+  const lower = message.toLowerCase().trim().replace(/[!.?]+$/, "");
+
+  if (["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "start", "info", "details", "townhouse", "townhouses", "atlantic villas", "guyana"].includes(lower)) {
+    return `👋 Hi! Thanks for contacting *Atlantic Villas* 🇬🇾\n\n🏡 Luxury townhouses in Better Hope, East Coast Demerara — *5 minutes from Ogle Airport*\n\n💵 *Buy in TT$ — TT$3.2 Million*\n📈 USD rentals *up to US$4,000/month*\n📐 1,700 sq ft • 3 bed • 2.5 bath\n🔒 Gated, pickleball court, outdoor kitchen, parking\n\nReply:\n🏠 *buy* – buying info\n🔑 *rent* – renting a unit\n📅 *viewing* – book a viewing\n📸 *photos* – see the homes\n❓ Or just ask me anything!`;
+  }
+
+  if (["hola", "buenas", "buenos dias", "buenos días", "buenas tardes", "buenas noches", "español", "espanol", "spanish"].includes(lower)) {
+    return `👋 ¡Hola! Gracias por contactar a *Atlantic Villas* 🇬🇾\n\n🏡 Townhouses de lujo en Better Hope, East Coast Demerara — *a 5 minutos del aeropuerto Ogle*\n\n💵 *Precio: TT$3.2 millones*\n📈 Alquileres en USD *hasta US$4,000/mes*\n📐 1,700 pies² • 3 habitaciones • 2.5 baños\n🔒 Comunidad cerrada, cancha de pickleball, cocina exterior, estacionamiento\n\n¿Le interesa comprar, invertir o alquilar? ¡Pregúnteme lo que quiera!`;
+  }
+
+  if (["photos", "photo", "pictures", "pics", "website", "fotos"].includes(lower)) {
+    return `📸 See photos and full details at *atlanticvillasgy.com*\n\nWould you like to book a viewing — in person in Guyana or a video call tour? 📅`;
+  }
+
+  if (["viewing", "view", "visit", "tour", "book", "appointment"].includes(lower)) {
+    return `📅 *Book a viewing of Atlantic Villas*\n\nPlease send:\n1️⃣ Your name\n2️⃣ In person (Guyana) or video call tour?\n3️⃣ Your preferred date and time\n\nA team member will confirm with you right here on WhatsApp. 🙌`;
+  }
+
+  if (lower === "help" || lower === "menu" || lower === "ayuda") {
+    return `*Atlantic Villas* 🏡\n\n🏠 *buy* – buying info\n🔑 *rent* – renting a unit\n📅 *viewing* – book a viewing\n📸 *photos* – see the homes\n\n🌐 atlanticvillasgy.com\nOr just ask me anything!`;
+  }
+
+  return null; // let the AI answer (buy, rent, prices, questions)
+}
+
+function handleMarketQuickCommand(message) {
   const lower = message.toLowerCase().trim();
 
   if (["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "start"].includes(lower)) {
@@ -577,12 +649,21 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 </html>`;
 
 // --- Extra guidance when the assistant is speaking on a phone call ---
-const VOICE_ADDENDUM = `
+const VOICE_ADDENDUM_MARKET = `
 
 You are now speaking to the customer on a live WhatsApp voice call, not chatting.
 Speak naturally in short sentences. Do not use emojis, bullet points, markdown or links.
 Greet the caller warmly as 868Market. If they want to post an ad, tell them posting is free at 868markettt.com
 or that they can send photos and details on WhatsApp and the team will post it for them.`;
+
+const VOICE_ADDENDUM_ATLANTIC = `
+
+You are now speaking to the customer on a live WhatsApp voice call, not chatting.
+Speak naturally in short sentences. Do not use emojis, bullet points, markdown or links.
+Greet the caller warmly as Atlantic Villas. Answer their questions, then take their name and whether they want
+to buy, invest or rent, and tell them a team member will message them on WhatsApp to arrange a viewing.`;
+
+const VOICE_ADDENDUM = BOT_MODE === "868market" ? VOICE_ADDENDUM_MARKET : VOICE_ADDENDUM_ATLANTIC;
 
 // --- Privacy Policy & Data Deletion (required by Meta to publish the app) ---
 const LEGAL_STYLE = `<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:40px auto;padding:0 16px;line-height:1.6;color:#222}h1{font-size:1.6em}h2{font-size:1.15em;margin-top:1.6em}</style>`;
