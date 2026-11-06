@@ -80,7 +80,8 @@ PROPERTY FACTS (only use these — never invent anything else):
 - 6 townhouses in a gated community with 24/7 secure gated entry
 - Each unit: 1,700 sq ft, 3 bedrooms, 2.5 bathrooms
 - Sale price: TT$3.2 Million (about US$425,000). Buyers in Trinidad can buy in TT$.
-- Investment: USD rental income of up to US$4,000 per month (short-term Airbnb or long-term tenants). Present this as "up to" potential, never as a guarantee.
+- Rent (to live in): US$4,000 per month furnished, or US$3,500 per month unfurnished
+- Investment: owners can earn USD rental income of up to US$4,000 per month (short-term Airbnb or long-term tenants). Present this as "up to" potential, never as a guarantee.
 - Location: Better Hope, East Coast Demerara. About 5–8 minutes from Ogle (Eugene F. Correia) International Airport, about 5 minutes to Movietown and Giftland Mall, about 15 minutes to downtown Georgetown. One of Guyana's fastest-growing corridors.
 - Finishes: stainless steel appliance package, designer cabinetry, waterfall island, porcelain tile throughout, Wi-Fi controlled smart lighting, floor-to-ceiling natural light, private balcony, patio
 - Shared amenities: private regulation-size pickleball court, outdoor kitchen with wood-fired pizza oven, BBQ grill and entertaining lounge, water fountain and seating area with tropical landscaping, parking on site
@@ -90,7 +91,7 @@ PROPERTY FACTS (only use these — never invent anything else):
 - Developer: Revel Inc. Email: Revelincgy@gmail.com. Guyana WhatsApp: +592 668 1807. Trinidad WhatsApp: +1 868 772 0094 (this chat).
 
 WHAT YOU DON'T KNOW — never guess these, say a team member will confirm:
-- The monthly rent for someone who wants to rent a unit to live in
+- Lease length, deposit and move-in date for renters
 - Payment plans, deposits, financing, mortgages, or how to pay in TT$
 - Which units are still available, legal/title/transfer details, closing costs, taxes
 - Exact rental income or returns beyond "up to US$4,000 per month"
@@ -234,6 +235,10 @@ function handleAtlanticQuickCommand(message) {
 
   if (["viewing", "view", "visit", "tour", "book", "appointment"].includes(lower)) {
     return `📅 *Book a viewing of Atlantic Villas*\n\nPlease send:\n1️⃣ Your name\n2️⃣ In person (Guyana) or video call tour?\n3️⃣ Your preferred date and time\n\nA team member will confirm with you right here on WhatsApp. 🙌`;
+  }
+
+  if (["rent", "rental", "rentals", "for rent", "alquilar", "alquiler"].includes(lower)) {
+    return `🔑 *Rent an Atlantic Villas townhouse*\n\n🛋 Furnished: *US$4,000/month*\n🏠 Unfurnished: *US$3,500/month*\n\n📐 1,700 sq ft • 3 bed • 2.5 bath • gated with parking\n✈ 5 minutes from Ogle Airport\n\nTo arrange a viewing, send your name, furnished or unfurnished, and when you'd like to move in. A team member will confirm lease details with you. 🙌`;
   }
 
   if (lower === "help" || lower === "menu" || lower === "ayuda") {
